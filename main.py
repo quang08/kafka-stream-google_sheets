@@ -2,6 +2,7 @@ import logging
 from quixstreams import Application
 from uuid import uuid4
 from datetime import timedelta
+import pygsheets
 
 def initializer_fn(msg): # get a single msg from the very start of the hour and has to turn it into a summary
     temperature = msg['current']['temperature_2m']
@@ -51,12 +52,27 @@ def main():
 
     # .update() is used to apply a function to each message
     # for every frame, log out the message
-    sdf = sdf.update(lambda msg: logging.debug("Got: %s", msg))
-    #sdf = sdf.send_to_gg_sheets()
+    #sdf = sdf.update(lambda msg: logging.debug("Got: %s", msg))
+   
+   #sdf = sdf.send_to_gg_sheets()
     
     # what the application will do now is go back and reprocess all the hours, we would get a series of hourly summaries that tell us the timestamp at the start and end of the hour and the value of our summary object. It would just sit there, waiting for more data to come in until the end of the hour then will finish off the processing and start waiting for the next hour worth of data.
     app.run(sdf)
 
 if __name__ == "__main__":
     logging.basicConfig(level="DEBUG")
-    main()
+    #main()
+    
+    google_api = pygsheets.authorize()
+    workspace = google_api.open("Weather Data")
+    sheet = workspace[0]
+    
+    # write to specific cells
+    sheet.update_values(
+        "A1",
+        [
+            ["Hello", "Spreadsheet"],
+            ["I am row", "two"],
+        ],
+     )
+    print(sheet)
