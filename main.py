@@ -52,27 +52,33 @@ def main():
 
     # .update() is used to apply a function to each message
     # for every frame, log out the message
-    #sdf = sdf.update(lambda msg: logging.debug("Got: %s", msg))
+    sdf = sdf.update(lambda msg: logging.debug("Got: %s", msg))
+    google_api = pygsheets.authorize()
+    workspace = google_api.open("Weather Data")
+    sheet = workspace[0]
    
-   #sdf = sdf.send_to_gg_sheets()
+   # write to specific cells
+    sheet.update_values(
+       "A1",
+       [["Start", "End", "Open", "High", "Low", "Close", "Date"]],
+     )
+   
+    def to_google(summary_msg):
+        sheet.insert_rows(1, values=[
+            summary_msg['start'],
+            summary_msg['end'],
+            summary_msg['value']['open'],
+            summary_msg['value']['high'],
+            summary_msg['value']['low'],
+            summary_msg['value']['close'],
+            "=EPOCHTODATE(A2 / 1000)",
+        ])      
+
+    sdf = sdf.apply(to_google) # apply to every row
     
-    # what the application will do now is go back and reprocess all the hours, we would get a series of hourly summaries that tell us the timestamp at the start and end of the hour and the value of our summary object. It would just sit there, waiting for more data to come in until the end of the hour then will finish off the processing and start waiting for the next hour worth of data.
+ # what the application will do now is go back and reprocess all the hours, we would get a series of hourly summaries that tell us the timestamp at the start and end of the hour and the value of our summary object. It would just sit there, waiting for more data to come in until the end of the hour then will finish off the processing and start waiting for the next hour worth of data.
     app.run(sdf)
 
 if __name__ == "__main__":
     logging.basicConfig(level="DEBUG")
-    #main()
-    
-    google_api = pygsheets.authorize()
-    workspace = google_api.open("Weather Data")
-    sheet = workspace[0]
-    
-    # write to specific cells
-    sheet.update_values(
-        "A1",
-        [
-            ["Hello", "Spreadsheet"],
-            ["I am row", "two"],
-        ],
-     )
-    print(sheet)
+    main()
