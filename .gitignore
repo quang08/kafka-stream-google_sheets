@@ -1,2 +1,6 @@
 venv/
 client_secret.json
+__pycache__/
+state/
+.main.py.swp
+sheet.googleapis.com-python.json
